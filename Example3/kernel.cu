@@ -2,8 +2,8 @@
 #include <stdio.h>
 #include "../common/book.h"
 
-__global__ void add(int a, int b, int *c) {
-	*c = a + b;
+__global__ void multiply(int a, int b, int *c) {
+	*c = a * b;
 }
 
 int main(void) {
@@ -12,11 +12,11 @@ int main(void) {
 
 	HANDLE_ERROR(cudaMalloc((void**)&dev_c, sizeof(int)));
 
-	add <<< 1, 1 >>> (2,7, dev_c);
+	multiply <<< 1, 1 >>> (4, 11, dev_c);
 
 	HANDLE_ERROR(cudaMemcpy(&c, dev_c, sizeof(int), cudaMemcpyDeviceToHost));
 
-	printf("2+7 = %d\n", c);
+	printf("4 * 11 = %d\n", c);
 
 	cudaFree(dev_c);
 	return 0;
