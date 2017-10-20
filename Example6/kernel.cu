@@ -1,11 +1,13 @@
-//Example 5.2.1. Example4, but using threads
+//Example 5.2.1. Pg 67, multiple block/threads
 #include "../common/book.h"
-#define N 10
+#define N (33 * 1024)
 
 __global__ void add(int *a, int *b, int *c) {
-	int tid = threadIdx.x;
-	if (tid < N)
+	int tid = threadIdx.x + blockIdx.x * blockDim.x;
+	if (tid < N) {
 		c[tid] = a[tid] + b[tid];
+		tid += blockDim.x * gridDim.x;
+	}
 }
 
 
@@ -25,7 +27,7 @@ int main(void) {
 	HANDLE_ERROR(cudaMemcpy(dev_a, a, N * sizeof(int), cudaMemcpyHostToDevice));
 	HANDLE_ERROR(cudaMemcpy(dev_b, b, N * sizeof(int), cudaMemcpyHostToDevice));
 
-	add << <1, N >> > (dev_a, dev_b, dev_c);
+	add << <128, 128 >> > (dev_a, dev_b, dev_c);
 
 	HANDLE_ERROR(cudaMemcpy(c, dev_c, N * sizeof(int), cudaMemcpyDeviceToHost));
 
