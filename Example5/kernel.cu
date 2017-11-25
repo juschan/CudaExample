@@ -52,18 +52,26 @@ __global__ void kernel(unsigned char * ptr) {
 	ptr[offset * 4 + 3] = 255;
 }
 
+// globals needed by the update routine
+struct DataBlock {
+	unsigned char   *dev_bitmap;
+};
+
 int main(void) {
-	CPUBitmap bitmap(DIM, DIM);
+	DataBlock   data;
+	CPUBitmap bitmap(DIM, DIM, &data);
 	unsigned char *dev_bitmap;
 
 	HANDLE_ERROR(cudaMalloc((void**)&dev_bitmap, bitmap.image_size()));
+	data.dev_bitmap = dev_bitmap;
 
 	dim3 grid(DIM, DIM);
 
-	kernel << <grid, 1 >> > (dev_bitmap);
+	kernel <<<grid, 1 >>> (dev_bitmap);
 
 	HANDLE_ERROR(cudaMemcpy(bitmap.get_ptr(), dev_bitmap, bitmap.image_size(), cudaMemcpyDeviceToHost));
+	
+	HANDLE_ERROR(cudaFree(dev_bitmap));
 
 	bitmap.display_and_exit();
-	HANDLE_ERROR(cudaFree(dev_bitmap));
 }
